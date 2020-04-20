@@ -1,0 +1,49 @@
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Chatroom</title>
+	<link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+	<div class="container">
+        <h1>Simple Chatroom</h1>
+        <h2>Join Room</h2>
+        <form action="#" method="POST">
+            <h5>Select Room:</h4>
+            <input type="hidden" name="action" value="join">
+            {% for room in data['rooms'] %}
+                <p>
+                    <label>
+                        <input type="radio" name="room_id" value="{{room['id']}}" required/>
+                        {{room['name']}}
+                    </label>
+                </p>
+            {% end %}
+            <h5>Enter Username:</h4>
+            <p>
+                <input type="text" value="{{data['username']}}" name="username" placeholder="Enter username" required>
+            </p>
+            <p>
+                <button type="submit">Enter Room</button>
+            </p>
+        </form>
+        <hr>
+        <h2>or Create New Room:</h2>
+        <form action="#" method="POST">
+            <input type="hidden" name="action" value="create_room">
+            <h5>Room Name:</h5>
+            <p>
+                <input type="text" name="name">
+            </p>
+            <p>
+                <button type="submit">Creat Room</button>
+            </p>
+        </form>
+    </div>
+    <div id="footer">
+        Powered By <a target="_blank" href="https://github.com/alirezahs1">Alireza Hooshyar</a>
+    </div>
+	<script src="static/jquery-3.5.0.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,2 @@
+mysql-connector==2.2.9
+tornado==6.0.4

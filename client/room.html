@@ -1,0 +1,122 @@
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Chatroom</title>
+	<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+	<div class="container">
+		<h1>Simple Chatroom</h1>
+		<span id="state">connecting...</span>
+		<a href="/" id="back"> &LeftAngleBracket; return</a>
+		<ul id="chatlist"></ul>
+		<form id="inputForm" action="#">
+			<label for="msg">Message:</label>
+			<input autocomplete="off" id="msg" type="text" placeholder="write and press enter.">
+			<button type="submit">Send</button>
+		</form>
+		
+	</div>
+	<div id="footer">
+        Powered By <a target="_blank" href="https://github.com/alirezahs1">Alireza Hooshyar</a>
+    </div>
+	<script src="/static/jquery-3.5.0.min.js"></script>
+	<script>
+
+		var messages = JSON.parse({% raw json_encode(data['messages']) %});
+		var room_id = {{data['room_id']}};
+		var username = "{{data['username']}}";
+		console.log(messages);
+		console.log(room_id);
+		console.log(username);
+
+		function init_chatroom(){
+			$(".container").show();
+			$("#msg").focus();
+			var chat_list = messages.map(ms => ({
+				text: ms.body,
+				author: ms.username,
+				other: ms.username==username ? false : true
+			}))
+			
+			update_chats();
+
+			var ws = new WebSocket("ws://localhost:8888/websocket");
+			ws.onopen = function(e){
+				changeState('connected.');
+			}
+			ws.onmessage = function(e){
+				var msg = JSON.parse(e.data);
+				var obj = {
+					text: msg.body,
+					other: msg.username==username ? false : true,
+					author: msg.username,
+				}
+				chat_list.push(obj);
+				update_chats();
+				console.log(e);
+			}
+			ws.onclose = function(e){
+				changeState('connection lost');
+			}
+			ws.onerror = function(e){
+				changeState(e);
+			}
+
+			$("#inputForm").on('submit', function(e){
+				e.preventDefault();
+				var msg = $("#msg").val();
+				if(msg.length == 0) return;
+				$("#msg").val('');
+				var data = {
+					username: username,
+					room_id: room_id,
+					body: msg
+				}
+				ws.send(JSON.stringify(data));
+			})
+
+			function update_chats(){
+				var $list = $("#chatlist");
+				$list.html('');
+				var author;
+				chat_list.forEach(c => {
+					if(c.other) author = `<span class="author">${c.author}</span>`
+					 else author = '';
+
+					$list.append(`
+						<li ${c.other ? 'class="other"' : ''}>
+							<span class="body">
+								${author}
+								${c.text}
+							</span>
+						</li>
+					`);
+				});
+				$list.scrollTop($list[0].scrollHeight);
+			}
+			function changeState(test){
+				$("#state").html(test);
+			}
+		}
+		function ask_username(){
+			while(!username)
+				username = prompt('username:');
+		}
+		function ask_room(){
+			var str = 'Select Room:';
+			rooms.map(r => str += `${r.id}: ${r.name}`);
+			while(!room_id){
+				room_id = prompt(str);
+			}
+				
+		}
+		$(() => {
+			//ask_username();
+			//ask_room();
+			init_chatroom();
+		})
+	</script>
+</body>
+</html>
